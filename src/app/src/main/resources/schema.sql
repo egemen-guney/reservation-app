@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS restaurant (
     stars DECIMAL(2, 1) NOT NULL CHECK (stars >= 0 AND stars <= 5),
     opening_hours TIME NOT NULL,
     closing_hours TIME NOT NULL,
-    capacity INTEGER NOT NULL CHECK (capacity > 0),
+    -- capacity INTEGER NOT NULL CHECK (capacity > 0),
     is_open BOOLEAN NOT NULL DEFAULT TRUE
 );
 
@@ -52,13 +52,24 @@ CREATE TABLE IF NOT EXISTS menu_item (
     satisfaction INTEGER NOT NULL CHECK (satisfaction >= 0 AND satisfaction <= 100)
 );
 
+CREATE TABLE IF NOT EXISTS seating_area (
+    area_id UUID PRIMARY KEY,
+    restaurant_id UUID NOT NULL REFERENCES restaurant(restaurant_id) ON DELETE CASCADE,
+    name VARCHAR(30) NOT NULL CHECK (name IN ('INDOOR', 'OUTDOOR', 'BAR')),
+    capacity INTEGER NOT NULL CHECK (capacity > 0),
+    UNIQUE (restaurant_id, name)
+);
+
 CREATE TABLE IF NOT EXISTS reservation (
     res_id UUID PRIMARY KEY,
     restaurant_id UUID NOT NULL REFERENCES restaurant(restaurant_id) ON DELETE CASCADE,
     customer_id UUID NOT NULL REFERENCES customer(customer_id) ON DELETE CASCADE,
-    start_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+    area_id UUID NOT NULL REFERENCES seating_area(area_id) ON DELETE CASCADE,
+    res_date DATE NOT NULL,                               -- e.g., '2026-05-25'
+    start_time TIME WITH TIME ZONE NOT NULL,               -- e.g., '19:00:00+03'
+    end_time TIME WITH TIME ZONE NOT NULL,                 -- e.g., '21:00:00+03'
     num_people INTEGER NOT NULL CHECK (num_people > 0),
+    note TEXT,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING', -- PENDING, CONFIRMED, CANCELLED, COMPLETED
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
