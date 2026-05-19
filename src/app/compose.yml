@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: 'postgres:17-alpine'
+    environment:
+      - 'POSTGRES_DB=resapp_db' # Will change this into an env variable in the future, but for now, this is fine.
+      - 'POSTGRES_PASSWORD=password' # Will change this into an env variable in the future, but for now, this is fine.
+      - 'POSTGRES_USER=egemen' # Will change this into an env variable in the future, but for now, this is fine.
+    ports:
+      - '5432:5432'
+    volumes:
+      - resapp_data:/var/lib/postgresql/data
+
+volumes:
+  resapp_data: # Keeps tables safe on the hard drive
