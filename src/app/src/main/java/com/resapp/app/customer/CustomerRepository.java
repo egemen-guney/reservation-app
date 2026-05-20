@@ -1,0 +1,61 @@
+package com.resapp.app.customer;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.Assert;
+
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public class CustomerRepository {
+    private final JdbcClient jdbcClient;
+
+    public CustomerRepository(JdbcClient jdbcClient) {
+        this.jdbcClient = jdbcClient;
+    }
+
+    public Optional<Customer> findByCustomerId(UUID customerId) {
+        return jdbcClient.sql("SELECT * FROM customer WHERE customer_id = :id")
+                .param("id", customerId)
+                .query(Customer.class)
+                .optional();
+    }
+
+    public Optional<Customer> findByAccountId(UUID accountId) {
+        return jdbcClient.sql("SELECT * FROM customer WHERE account_id = :id")
+                .param("id", accountId)
+                .query(Customer.class)
+                .optional();
+    }
+
+    public void create(Customer customer) {
+        var updated = jdbcClient.sql("INSERT INTO customer (customer_id, account_id, first_name, last_name) " +
+                "VALUES (:customer_id, :account_id, :f_name, :l_name)")
+                .param("customer_id", customer.getCustomerId())
+                .param("account_id", customer.getAccountId())
+                .param("f_name", customer.getFirstName())
+                .param("l_name", customer.getLastName())
+                .update();
+
+        Assert.state(updated == 1, "Failed to create customer profile for account with ID: " + customer.getAccountId());
+    }
+
+    public void update(Customer customer) {
+        var updated = jdbcClient.sql("UPDATE customer SET first_name = :f_name, last_name = :l_name WHERE customer_id = :id")
+                .param("id", customer.getCustomerId())
+                .param("f_name", customer.getFirstName())
+                .param("l_name", customer.getLastName())
+                .update();
+
+        Assert.state(updated == 1, "Failed to update customer with ID: " + customer.getCustomerId());
+    }
+
+    public void delete(UUID customerId) {
+        var updated = jdbcClient.sql("DELETE FROM customer WHERE customer_id = :id")
+                .param("id", customerId)
+                .update();
+
+        Assert.state(updated == 1, "Failed to delete customer profile with ID: " + customerId);
+    }
+}
