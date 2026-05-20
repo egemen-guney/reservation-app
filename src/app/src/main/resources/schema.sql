@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS account (
     email VARCHAR(255) UNIQUE NOT NULL,
     phone VARCHAR(20) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL, -- CUSTOMER, RESTAURANT_OWNER, ADMIN
+    role VARCHAR(20) NOT NULL CHECK (role IN ('CUSTOMER', 'RESTAURANT', 'ADMIN')), -- CUSTOMER, RESTAURANT_OWNER, ADMIN
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -55,9 +55,9 @@ CREATE TABLE IF NOT EXISTS menu_item (
 CREATE TABLE IF NOT EXISTS seating_area (
     area_id UUID PRIMARY KEY,
     restaurant_id UUID NOT NULL REFERENCES restaurant(restaurant_id) ON DELETE CASCADE,
-    name VARCHAR(30) NOT NULL CHECK (name IN ('INDOOR', 'OUTDOOR', 'BAR')),
+    area_name VARCHAR(30) NOT NULL CHECK (area_name IN ('INDOOR', 'OUTDOOR', 'BAR')) DEFAULT 'INDOOR',
     capacity INTEGER NOT NULL CHECK (capacity > 0),
-    UNIQUE (restaurant_id, name)
+    UNIQUE (restaurant_id, area_name)
 );
 
 CREATE TABLE IF NOT EXISTS reservation (
