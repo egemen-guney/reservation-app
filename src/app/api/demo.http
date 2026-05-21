@@ -1,0 +1,32 @@
+### Register a New Customer
+POST http://localhost:8080/api/customers/register
+Content-Type: application/json
+
+{
+  "email": "egemen@sfu.ca",
+  "phone": "555-0100",
+  "password": "supersecretpassword",
+  "firstName": "Egemen",
+  "lastName": "Guney"
+}
+
+### Register a New Restaurant
+POST http://localhost:8080/api/restaurants/register
+Content-Type: application/json
+
+{
+  "email": "owner@bobsburgers.com",
+  "phone": "555-0101",
+  "password": "burgerpassword",
+  "name": "Bob's Burgers",
+  "busPhone": "555-0102",
+  "stars": 4.5,
+  "openingHours": "09:00:00",
+  "closingHours": "22:00:00",
+  "isOpen": true,
+  "street": "123 Ocean Avenue",
+  "city": "Seymour's Bay",
+  "state": "NJ",
+  "zipCode": "08260",
+  "country": "USA"
+}
