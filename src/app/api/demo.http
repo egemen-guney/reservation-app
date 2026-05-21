@@ -30,3 +30,39 @@ Content-Type: application/json
   "zipCode": "08260",
   "country": "USA"
 }
+
+### Login Test (With Phone)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "emailOrPhone": "555-0100",
+  "password": "supersecretpassword"
+}
+
+### Login Test (With Email)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "emailOrPhone": "owner@bobsburgers.com",
+  "password": "burgerpassword"
+}
+
+### Login Test (With Wrong Email)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "emailOrPhone": "notowner@bobsburgers.com",
+  "password": "burgerpassword"
+}
+
+### Login Test (With Wrong Password)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "emailOrPhone": "555-0100",
+  "password": "secretpassword"
+}

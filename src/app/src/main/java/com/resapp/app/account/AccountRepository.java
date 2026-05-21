@@ -36,6 +36,13 @@ public class AccountRepository {
                 .optional();
     }
 
+    public Optional<Account> findByEmailOrPhone(String identifier) {
+        return jdbcClient.sql("SELECT * FROM account WHERE email = :identifier OR phone = :identifier")
+                .param("identifier", identifier)
+                .query(Account.class)
+                .optional();
+    }
+
     public void create(Account account) {
         var updated = jdbcClient.sql("INSERT INTO account (account_id, email, phone, password_hash, role) " +
                         "VALUES (:id, :email, :phone, :passwordHash, :role)")

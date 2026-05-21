@@ -9,6 +9,7 @@ import com.resapp.app.menu.Menu;
 import com.resapp.app.menu.MenuRepository;
 import com.resapp.app.restaurant.Restaurant;
 import com.resapp.app.restaurant.RestaurantRegistrationRequest;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.resapp.app.restaurant.RestaurantRepository;
 import org.springframework.stereotype.Service;
@@ -24,14 +25,16 @@ public class AccountService {
     private final AddressRepository addressRepository;
     private final PasswordEncoder passwordEncoder;
     private final MenuRepository menuRepository;
+    private final JdbcClient jdbcClient;
 
-    public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository, RestaurantRepository restaurantRepository, AddressRepository addressRepository, PasswordEncoder passwordEncoder, MenuRepository menuRepository) {
+    public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository, RestaurantRepository restaurantRepository, AddressRepository addressRepository, PasswordEncoder passwordEncoder, MenuRepository menuRepository, JdbcClient jdbcClient) {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.restaurantRepository = restaurantRepository;
         this.addressRepository = addressRepository;
         this.passwordEncoder = passwordEncoder;
         this.menuRepository = menuRepository;
+        this.jdbcClient = jdbcClient;
     }
 
     @Transactional
@@ -115,5 +118,20 @@ public class AccountService {
         addressRepository.create((newAddress));
         menuRepository.create(newMenu);
         restaurantRepository.create(newRestaurant);
+    }
+
+    @Transactional
+    public LoginResponse login(LoginRequest request) {
+        Account account = accountRepository.findByEmailOrPhone(request.emailOrPhone())
+                .orElseThrow(() -> new IllegalArgumentException("Could not find an account with these credentials."));
+
+        boolean passwordMatches = passwordEncoder.matches(request.password(), account.getPasswordHash());
+
+        if (!passwordMatches) throw new IllegalArgumentException("Invalid password.");
+
+        return new LoginResponse(
+                account.getAccountId(),
+                account.getRole(),
+                "Successfully logged in!");
     }
 }

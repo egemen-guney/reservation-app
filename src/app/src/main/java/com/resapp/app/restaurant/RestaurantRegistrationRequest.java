@@ -2,6 +2,7 @@ package com.resapp.app.restaurant;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -39,10 +40,10 @@ public record RestaurantRegistrationRequest(
         String busPhone,
         BigDecimal stars,
 
-        @NotBlank(message = "Opening times are required.")
+        @NotNull(message = "Opening times are required.")
         LocalTime openingHours,
 
-        @NotBlank(message = "Closing times are required.")
+        @NotNull(message = "Closing times are required.")
         LocalTime closingHours,
         boolean isOpen
 ) { }
