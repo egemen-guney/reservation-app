@@ -31,21 +31,21 @@ public class CustomerRepository {
 
     public void create(Customer customer) {
         var updated = jdbcClient.sql("INSERT INTO customer (customer_id, account_id, first_name, last_name) " +
-                "VALUES (:customer_id, :account_id, :f_name, :l_name)")
-                .param("customer_id", customer.getCustomerId())
-                .param("account_id", customer.getAccountId())
-                .param("f_name", customer.getFirstName())
-                .param("l_name", customer.getLastName())
+                "VALUES (:customerId, :accountId, :fName, :lName)")
+                .param("customerId", customer.getCustomerId())
+                .param("accountId", customer.getAccountId())
+                .param("fName", customer.getFirstName())
+                .param("lName", customer.getLastName())
                 .update();
 
         Assert.state(updated == 1, "Failed to create customer profile for account with ID: " + customer.getAccountId());
     }
 
     public void update(Customer customer) {
-        var updated = jdbcClient.sql("UPDATE customer SET first_name = :f_name, last_name = :l_name WHERE customer_id = :id")
+        var updated = jdbcClient.sql("UPDATE customer SET first_name = :fName, last_name = :lName WHERE customer_id = :id")
                 .param("id", customer.getCustomerId())
-                .param("f_name", customer.getFirstName())
-                .param("l_name", customer.getLastName())
+                .param("fName", customer.getFirstName())
+                .param("lName", customer.getLastName())
                 .update();
 
         Assert.state(updated == 1, "Failed to update customer with ID: " + customer.getCustomerId());
