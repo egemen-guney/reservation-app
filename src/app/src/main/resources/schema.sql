@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS menu_item (
     category VARCHAR(100) NOT NULL,
     is_available BOOLEAN NOT NULL DEFAULT TRUE,
     price DECIMAL(10, 2) NOT NULL,
-    satisfaction INTEGER NOT NULL CHECK (satisfaction >= 0 AND satisfaction <= 100)
+    satisfaction INTEGER CHECK (satisfaction >= 0 AND satisfaction <= 100)
 );
 
 CREATE TABLE IF NOT EXISTS seating_area (

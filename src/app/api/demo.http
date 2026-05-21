@@ -66,3 +66,18 @@ Content-Type: application/json
   "emailOrPhone": "555-0100",
   "password": "secretpassword"
 }
+
+### Add a Burger to the Menu
+POST http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items
+Content-Type: application/json
+
+{
+  "name": "Classic Cheeseburger",
+  "description": "Quarter pound beef patty with cheddar cheese, lettuce, and tomato.",
+  "category": "Handhelds",
+  "price": 12.99,
+  "isAvailable": true
+}
+
+### Get the Whole Menu
+GET http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items
