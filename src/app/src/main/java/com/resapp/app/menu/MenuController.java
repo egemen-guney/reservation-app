@@ -27,4 +27,19 @@ public class MenuController {
     public void addMenuItem(@PathVariable UUID menuId, @Valid @RequestBody MenuItemRequest request) {
         menuService.addMenuItem(menuId, request);
     }
+
+    @PutMapping("/{menuId}/items/{menuItemId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateMenuItem(
+            @PathVariable UUID menuId,
+            @PathVariable UUID menuItemId,
+            @Valid @RequestBody MenuItemRequest request) {
+        menuService.updateMenuItem(menuId, menuItemId, request);
+    }
+
+    @DeleteMapping("/{menuId}/items/{menuItemId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMenuItem(@PathVariable UUID menuId, @PathVariable UUID menuItemId) {
+        menuService.deleteMenuItem(menuId, menuItemId);
+    }
 }

@@ -9,7 +9,6 @@ import com.resapp.app.menu.Menu;
 import com.resapp.app.menu.MenuRepository;
 import com.resapp.app.restaurant.Restaurant;
 import com.resapp.app.restaurant.RestaurantRegistrationRequest;
-import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.resapp.app.restaurant.RestaurantRepository;
 import org.springframework.stereotype.Service;
@@ -25,16 +24,14 @@ public class AccountService {
     private final AddressRepository addressRepository;
     private final PasswordEncoder passwordEncoder;
     private final MenuRepository menuRepository;
-    private final JdbcClient jdbcClient;
 
-    public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository, RestaurantRepository restaurantRepository, AddressRepository addressRepository, PasswordEncoder passwordEncoder, MenuRepository menuRepository, JdbcClient jdbcClient) {
+    public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository, RestaurantRepository restaurantRepository, AddressRepository addressRepository, PasswordEncoder passwordEncoder, MenuRepository menuRepository) {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.restaurantRepository = restaurantRepository;
         this.addressRepository = addressRepository;
         this.passwordEncoder = passwordEncoder;
         this.menuRepository = menuRepository;
-        this.jdbcClient = jdbcClient;
     }
 
     @Transactional

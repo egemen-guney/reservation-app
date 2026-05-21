@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -21,6 +22,13 @@ public class MenuItemRepository {
                 .param("id", menuId)
                 .query(MenuItem.class)
                 .list();
+    }
+
+    public Optional<MenuItem> findByItemId(UUID itemId) {
+        return jdbcClient.sql("SELECT * FROM menu_item WHERE menu_item_id = :id")
+                .param("id", itemId)
+                .query(MenuItem.class)
+                .optional();
     }
 
     public void create(MenuItem menuItem) {
@@ -45,7 +53,7 @@ public class MenuItemRepository {
                 .param("name", menuItem.getName())
                 .param("description", menuItem.getDescription())
                 .param("category", menuItem.getCategory())
-                .param("is_available", menuItem.isAvailable())
+                .param("isAvailable", menuItem.isAvailable())
                 .param("price", menuItem.getPrice())
                 .param("satisfaction", menuItem.getSatisfaction())
                 .update();

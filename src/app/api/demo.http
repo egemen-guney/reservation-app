@@ -81,3 +81,20 @@ Content-Type: application/json
 
 ### Get the Whole Menu
 GET http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items
+
+### Update a Menu Item
+# Don't forget to replace the UUIDs in the URL!
+PUT http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items/f7a725a9-a643-4a78-a417-e9512bb21964
+Content-Type: application/json
+
+{
+  "name": "Truffle Cheeseburger",
+  "description": "Upgraded quarter pound beef patty with truffle mayo, caramelized onions, and swiss cheese.",
+  "category": "Mains",
+  "price": 16.99,
+  "isAvailable": true
+}
+
+### Delete a Menu Item
+# This will permanently delete the item from the database
+DELETE http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items/f7a725a9-a643-4a78-a417-e9512bb21964

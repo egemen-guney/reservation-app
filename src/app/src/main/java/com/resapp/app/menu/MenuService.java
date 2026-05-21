@@ -19,7 +19,7 @@ public class MenuService {
     @Transactional
     public void addMenuItem(UUID menuId, MenuItemRequest request) {
         menuRepository.findById(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("Menu with this ID does not exist."));
+                .orElseThrow(() -> new IllegalArgumentException("Menu not found."));
 
         UUID newMenuItemId = UUID.randomUUID();
         MenuItem newMenuItem = MenuItem.builder()
@@ -36,6 +36,35 @@ public class MenuService {
     }
 
     @Transactional
+    public void updateMenuItem(UUID menuId, UUID menuItemId, MenuItemRequest request) {
+        MenuItem existingMenuItem = menuItemRepository.findByItemId(menuItemId)
+                .orElseThrow(() -> new IllegalArgumentException("Menu item not found."));
+
+        if (!existingMenuItem.getMenuId().equals(menuId)) {
+            throw new IllegalStateException("This item does not belong to the given menu.");
+        }
+
+        existingMenuItem.setName(request.name());
+        existingMenuItem.setDescription(request.description());
+        existingMenuItem.setCategory(request.category());
+        existingMenuItem.setPrice(request.price());
+        existingMenuItem.setAvailable(request.isAvailable());
+
+        menuItemRepository.update(existingMenuItem);
+    }
+
+    @Transactional
+    public void deleteMenuItem(UUID menuId, UUID menuItemId) {
+        MenuItem existingMenuItem = menuItemRepository.findByItemId(menuItemId)
+                .orElseThrow(() -> new IllegalArgumentException("Menu item not found."));
+
+        if (!existingMenuItem.getMenuId().equals(menuId)) {
+            throw new IllegalStateException("This item does not belong to the given menu.");
+        }
+
+        menuItemRepository.delete(menuItemId);
+    }
+
     public List<MenuItem> getMenuItems(UUID menuId) {
         return menuItemRepository.findByMenuId(menuId);
     }
