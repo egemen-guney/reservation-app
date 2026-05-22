@@ -83,8 +83,7 @@ Content-Type: application/json
 GET http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items
 
 ### Update a Menu Item
-# Don't forget to replace the UUIDs in the URL!
-PUT http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items/f7a725a9-a643-4a78-a417-e9512bb21964
+PUT http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items/6e8a59c5-4110-4239-b57a-a797579caacf
 Content-Type: application/json
 
 {
@@ -96,5 +95,7 @@ Content-Type: application/json
 }
 
 ### Delete a Menu Item
-# This will permanently delete the item from the database
+DELETE http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items/f7a725a9-a643-4a78-a417-e9512bb21964
+
+### Delete a Menu Item That Belongs to Another Menu
 DELETE http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items/f7a725a9-a643-4a78-a417-e9512bb21964
