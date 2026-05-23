@@ -66,8 +66,8 @@ public class AccountService {
 
     @Transactional
     public void registerNewRestaurant(RestaurantRegistrationRequest request) {
-        if (accountRepository.findByEmail(request.email()).isPresent()) throw new IllegalStateException("An account with this email already exists.");
-        if (accountRepository.findByPhone(request.phone()).isPresent()) throw new IllegalStateException("An account with this phone already exists.");
+        // if (accountRepository.findByEmail(request.email()).isPresent()) throw new IllegalStateException("An account with this email already exists.");
+        // if (accountRepository.findByPhone(request.phone()).isPresent()) throw new IllegalStateException("An account with this phone already exists.");
 
         String passwordHash = passwordEncoder.encode(request.password());
         // debug
