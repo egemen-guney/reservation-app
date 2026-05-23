@@ -134,7 +134,7 @@ Content-Type: application/json
 }
 
 ### 2B. Restaurant Confirms the Booking
-@resId = 25a05b21-1eba-403a-b370-e7104a94d4cf
+# @resId = 25a05b21-1eba-403a-b370-e7104a94d4cf
 # Expected: 200 OK (Status flips to CONFIRMED)
 PATCH http://localhost:8080/api/restaurants/{{restaurantId}}/reservations/{{resId}}/status?status=CONFIRMED
 
@@ -216,3 +216,193 @@ Content-Type: application/json
 ### 5A. Customer 1 Cancels their reservation
 # Expected: 200 OK (Status becomes CANCELLED, row remains in DB for analytics)
 DELETE http://localhost:8080/api/customers/{{customerId1}}/reservations/{{resId}}
+
+@restaurantId = 6acef022-8e78-421f-be79-4e779cecd042
+@customerId1 = 2a5e029a-cccc-4c3f-88ab-53ae5689a2a1
+@customerId2 = b7355a75-46af-44d2-b051-749e8bc5fee6
+
+# MENU ITEMS (Must belong to the @restaurantId above)
+@menuItemId1 = fc628bc8-7f3c-4aa3-ad5a-821fd641d65e
+@menuItemId2 = 945bcab4-28a9-4556-bd9a-c5e6e8d69fd3
+
+# CROSS-TENANT TEST DATA (Must belong to a DIFFERENT restaurant)
+@foreignMenuItemId = 8b6f4bdc-a7cd-415b-9a47-0161cde48525
+
+### 1A. Create the OUTDOOR Seating Area (Capacity: 10)
+# Expected: 201 Created
+POST http://localhost:8080/api/restaurants/{{restaurantId}}/seating
+Content-Type: application/json
+
+{
+  "areaName": "OUTDOOR",
+  "capacity": 10
+}
+
+### 1B. Fetch Restaurant Seating Areas
+# Expected: 200 OK (Copy the 'areaId' from the response into the @areaId variable above!)
+GET http://localhost:8080/api/restaurants/{{restaurantId}}/seating
+
+### 1C. Update Seating Area (Increase capacity to 12)
+# Expected: 200 OK
+PUT http://localhost:8080/api/restaurants/{{restaurantId}}/seating/{{areaId}}
+Content-Type: application/json
+
+{
+  "areaName": "INDOOR",
+  "capacity": 12
+}
+
+### 2A. Customer 1 Makes a Valid Booking (Party of 6)
+# Expected: 201 Created
+POST http://localhost:8080/api/customers/{{customerId1}}/reservations
+Content-Type: application/json
+
+{
+  "areaId": "{{areaId}}",
+  "date": "2026-06-15",
+  "start": "18:00:00Z",
+  "end": "20:00:00Z",
+  "size": 6,
+  "note": "Anniversary dinner"
+}
+
+### 2B. Fetch Customer 1's Reservations
+# Expected: 200 OK (Copy the 'resId' from the response into the @resId variable above!)
+GET http://localhost:8080/api/customers/{{customerId1}}/reservations
+
+### 2C. Restaurant Rejects the Booking
+# Expected: 200 OK
+PATCH http://localhost:8080/api/restaurants/{{restaurantId}}/reservations/{{resId}}/status?status=CANCELLED
+
+### 2D. Fetch Restaurant's Upcoming Reservations
+# Expected: 200 OK (Should show the booking with status: CONFIRMED)
+GET http://localhost:8080/api/restaurants/{{restaurantId}}/reservations
+
+### 3A. The Capacity Gauntlet (Customer 2 tries to overbook)
+# Capacity is 12. Existing is 6. Request is 8. (6 + 8 > 12)
+# Expected: 409 Conflict ("Not enough capacity...")
+POST http://localhost:8080/api/customers/{{customerId2}}/reservations
+Content-Type: application/json
+
+{
+  "areaId": "{{areaId}}",
+  "date": "2026-06-15",
+  "start": "18:30:00Z",
+  "end": "20:30:00Z",
+  "size": 8,
+  "note": "Big party!"
+}
+
+### 3B. The Time Gauntlet (Customer 2 books outside operating hours)
+# Expected: 409 Conflict ("Requested time falls outside...")
+POST http://localhost:8080/api/customers/{{customerId2}}/reservations
+Content-Type: application/json
+
+{
+  "areaId": "{{areaId}}",
+  "date": "2026-06-15",
+  "start": "03:00:00Z",
+  "end": "04:00:00Z",
+  "size": 2,
+  "note": "Late night snack"
+}
+
+### 3C. The Update Gauntlet (Customer 1 updates their OWN booking safely)
+# Double-subtraction test. Math should allow 6 -> 8 since 8 <= 12.
+# Expected: 200 OK
+PUT http://localhost:8080/api/customers/{{customerId1}}/reservations/{{resId}}
+Content-Type: application/json
+
+{
+  "areaId": "{{areaId}}",
+  "date": "2026-06-15",
+  "start": "18:00:00Z",
+  "end": "20:00:00Z",
+  "size": 8,
+  "note": "Two more joined us!"
+}
+
+### 4A. Customer 1 Checks Out Successfully
+# Expected: 201 Created
+@menuItemId1 = fc628bc8-7f3c-4aa3-ad5a-821fd641d65e
+@menuItemId2 = 945bcab4-28a9-4556-bd9a-c5e6e8d69fd3
+@resId = f31010e1-987f-4428-b382-ff05445b82bf
+@orderId = 919122ea-7b78-4e56-a733-efef8989a326
+POST http://localhost:8080/api/customers/{{customerId1}}/orders
+Content-Type: application/json
+
+{
+  "resId": "{{resId}}",
+  "ccNum": "tok_visa_4242",
+  "items": [
+    {
+      "menuItemId": "{{menuItemId1}}",
+      "quantity": 2
+    },
+    {
+      "menuItemId": "{{menuItemId2}}",
+      "quantity": 1
+    }
+  ]
+}
+
+### 4B. Fetch Customer 1's Orders
+# Expected: 200 OK (Copy the 'orderId' into the @orderId variable above! Verify the totalPrice!)
+GET http://localhost:8080/api/customers/{{customerId1}}/orders
+
+### 4C. Fetch the Hydrated Order Items (The Receipt)
+# Expected: 200 OK (Returns an array of the 2 items from the cart)
+GET http://localhost:8080/api/customers/{{customerId1}}/orders/{{orderId}}/items
+
+### 4D. Fetch a Single Order Item
+# Expected: 200 OK
+GET http://localhost:8080/api/customers/{{customerId1}}/orders/{{orderId}}/items/{{menuItemId1}}
+
+### 5A. The Double-Billing Bug (Try checking out again for the same resId)
+# Expected: 409 Conflict ("An order has already been placed...")
+POST http://localhost:8080/api/customers/{{customerId1}}/orders
+Content-Type: application/json
+
+{
+  "resId": "{{resId}}",
+  "ccNum": "tok_visa_4242",
+  "items": [
+    {
+      "menuItemId": "{{menuItemId1}}",
+      "quantity": 1
+    }
+  ]
+}
+
+### 5B. The Cross-Tenant Bug ("McDonalds at a Steakhouse")
+@foreignMenuItemId = 8b6f4bdc-a7cd-415b-9a47-0161cde48525
+# Expected: 409 Conflict ("Item does not belong to this restaurant's menu.")
+POST http://localhost:8080/api/customers/{{customerId2}}/orders
+Content-Type: application/json
+
+{
+  "resId": "{{resId}}",
+  "ccNum": "tok_visa_1234",
+  "items": [
+    {
+      "menuItemId": "{{foreignMenuItemId}}",
+      "quantity": 1
+    }
+  ]
+}
+
+### 6A. Customer 1 Refunds their Order
+# Expected: 200 OK (Status flips to REFUNDED)
+PATCH http://localhost:8080/api/customers/{{customerId1}}/orders/{{orderId}}/refund
+
+### 6B. Customer 1 Cancels their Reservation (Soft Delete)
+# Expected: 200 OK (Status flips to CANCELLED)
+DELETE http://localhost:8080/api/customers/{{customerId1}}/reservations/{{resId}}
+
+### 6C. Admin Hard Deletes the Reservation
+# Expected: 204 No Content
+DELETE http://localhost:8080/api/admin/reservations/{{resId}}
+
+### 6D. Restaurant Deletes the Seating Area
+# Expected: 200 OK
+DELETE http://localhost:8080/api/restaurants/{{restaurantId}}/seating/{{areaId}}
