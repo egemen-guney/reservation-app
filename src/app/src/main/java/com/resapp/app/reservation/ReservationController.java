@@ -1,0 +1,60 @@
+package com.resapp.app.reservation;
+
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api")
+public class ReservationController {
+    private final ReservationService resService;
+
+    public ReservationController(ReservationService resService) {
+        this.resService = resService;
+    }
+
+    // --CUSTOMERS--
+    @GetMapping("/customers/{customerId}/reservations")
+    public List<Reservation> getCustomerReservations(@PathVariable UUID customerId) {
+        return resService.getResByCustomer(customerId);
+    }
+
+    @PostMapping("/customers/{customerId}/reservations")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void makeReservation(@PathVariable UUID customerId, @Valid @RequestBody ReservationRequest request) {
+        resService.makeReservation(customerId, request);
+    }
+
+    @PutMapping("/customers/{customerId}/reservations/{resId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateReservation(@PathVariable UUID customerId, @PathVariable UUID resId,
+                                  @Valid @RequestBody ReservationRequest request) {
+        resService.updateReservation(resId, customerId, request);
+    }
+
+    @DeleteMapping("/customers/{customerId}/reservations/{resId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void cancelReservation(@PathVariable UUID customerId, @PathVariable UUID resId) {
+        resService.cancelReservation(customerId, resId);
+    }
+    // --CUSTOMERS--
+
+    // --RESTAURANTS--
+    @GetMapping("/restaurants/{restaurantId}/reservations")
+    public List<Reservation> getRestaurantReservations(@PathVariable UUID restaurantId) {
+        return resService.getResByRestaurant(restaurantId);
+    }
+
+    @PatchMapping("/restaurants/{restaurantId}/reservations/{resId}/status")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateReservationStatus(
+            @PathVariable UUID restaurantId,
+            @PathVariable UUID resId,
+            @RequestParam ReservationStatus status) {
+        resService.updateReservationStatus(restaurantId, resId, status);
+    }
+    // --RESTAURANTS--
+}

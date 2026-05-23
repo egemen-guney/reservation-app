@@ -68,7 +68,7 @@ Content-Type: application/json
 }
 
 ### Add a Burger to the Menu
-POST http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items
+POST http://localhost:8080/api/menus/73eefebd-acc0-4b06-b046-3a4c5d202e6e/items
 Content-Type: application/json
 
 {
@@ -80,10 +80,10 @@ Content-Type: application/json
 }
 
 ### Get the Whole Menu
-GET http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items
+GET http://localhost:8080/api/menus/73eefebd-acc0-4b06-b046-3a4c5d202e6e/items
 
 ### Update a Menu Item
-PUT http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items/6e8a59c5-4110-4239-b57a-a797579caacf
+PUT http://localhost:8080/api/menus/73eefebd-acc0-4b06-b046-3a4c5d202e6e/items/fc628bc8-7f3c-4aa3-ad5a-821fd641d65e
 Content-Type: application/json
 
 {
@@ -99,3 +99,120 @@ DELETE http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/item
 
 ### Delete a Menu Item That Belongs to Another Menu
 DELETE http://localhost:8080/api/menus/ed1ee242-265e-43ef-9976-8eab7b9448b9/items/f7a725a9-a643-4a78-a417-e9512bb21964
+
+# Replace these with real UUIDs from your PostgreSQL database!
+@restaurantId = d6b62c05-93e0-4fe0-856d-2640bd829b14
+@customerId1 = 2a5e029a-cccc-4c3f-88ab-53ae5689a2a1
+@customerId2 = 22222222-2222-2222-2222-222222222222
+@areaId = e43efeda-00ec-494b-bbcb-a8450064dd92
+@resId = 25a05b21-1eba-403a-b370-e7104a94d4cf
+
+### 1A. Create the INDOOR Seating Area (Capacity: 10)
+@restaurantId = d6b62c05-93e0-4fe0-856d-2640bd829b14
+POST http://localhost:8080/api/restaurants/{{restaurantId}}/seating
+Content-Type: application/json
+
+{
+  "areaName": "INDOOR",
+  "capacity": 10
+}
+
+### 2A. Customer 1 makes a valid booking (Party of 6)
+@customerId1 = 2a5e029a-cccc-4c3f-88ab-53ae5689a2a1
+@areaId = e43efeda-00ec-494b-bbcb-a8450064dd92
+# Expected: 201 Created (Status defaults to PENDING)
+POST http://localhost:8080/api/customers/{{customerId1}}/reservations
+Content-Type: application/json
+
+{
+  "areaId": "{{areaId}}",
+  "date": "2026-06-15",
+  "start": "18:00:00Z",
+  "end": "20:00:00Z",
+  "size": 6,
+  "note": "Anniversary dinner"
+}
+
+### 2B. Restaurant Confirms the Booking
+@resId = 25a05b21-1eba-403a-b370-e7104a94d4cf
+# Expected: 200 OK (Status flips to CONFIRMED)
+PATCH http://localhost:8080/api/restaurants/{{restaurantId}}/reservations/{{resId}}/status?status=CONFIRMED
+
+### Register a New Customer
+POST http://localhost:8080/api/customers/register
+Content-Type: application/json
+
+{
+  "email": "notegemen@sfu.ca",
+  "phone": "555-0102",
+  "password": "supersecretpassword",
+  "firstName": "Egemen",
+  "lastName": "Guney"
+}
+
+### 3A. Customer 2 tries to overbook the same time slot
+# Existing booking: 6 people. Capacity: 10. Remaining: 4.
+# Request: 5 people.
+# Expected: 409 Conflict ("Not enough capacity...")
+@customerId2 = 22222222-2222-2222-2222-222222222222
+POST http://localhost:8080/api/customers/{{customerId2}}/reservations
+Content-Type: application/json
+
+{
+  "areaId": "{{areaId}}",
+  "date": "2026-06-15",
+  "start": "18:30:00Z",
+  "end": "20:30:00Z",
+  "size": 5,
+  "note": "We need a big table!"
+}
+
+### 3B. Customer 2 tries to book OUTSIDE operating hours
+# (Assuming your restaurant closes at 22:00)
+# Expected: 409 Conflict ("Requested time falls outside...")
+POST http://localhost:8080/api/customers/{{customerId2}}/reservations
+Content-Type: application/json
+
+{
+  "areaId": "{{areaId}}",
+  "date": "2026-06-15",
+  "start": "23:00:00Z",
+  "end": "23:50:00Z",
+  "size": 2,
+  "note": "Late night snack"
+}
+
+### 4A. Customer 1 successfully updates their booking (Party of 6 -> 8)
+# Double-subtraction bug test: If the bug existed, math would fail.
+# 8 is <= 10, so this should pass!
+# Expected: 200 OK
+PUT http://localhost:8080/api/customers/{{customerId1}}/reservations/{{resId}}
+Content-Type: application/json
+
+{
+  "areaId": "{{areaId}}",
+  "date": "2026-06-15",
+  "start": "18:00:00Z",
+  "end": "20:00:00Z",
+  "size": 8,
+  "note": "Two more joined us!"
+}
+
+### 4B. Customer 1 tries to update beyond the physical capacity of the room
+# Party of 8 -> 15 (Room max is 10)
+# Expected: 409 Conflict ("Not enough capacity...")
+PUT http://localhost:8080/api/customers/{{customerId1}}/reservations/{{resId}}
+Content-Type: application/json
+
+{
+  "areaId": "{{areaId}}",
+  "date": "2026-06-15",
+  "start": "18:00:00Z",
+  "end": "20:00:00Z",
+  "size": 15,
+  "note": "Surprise party!"
+}
+
+### 5A. Customer 1 Cancels their reservation
+# Expected: 200 OK (Status becomes CANCELLED, row remains in DB for analytics)
+DELETE http://localhost:8080/api/customers/{{customerId1}}/reservations/{{resId}}
