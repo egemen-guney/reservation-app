@@ -14,6 +14,11 @@ public class CustomerController {
         this.accountService = accountService;
     }
 
+    @GetMapping
+    public String demo() { // debug function to test auth
+        return "passed";
+    }
+
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public void registerCustomer(@Valid @RequestBody CustomerRegistrationRequest request) {

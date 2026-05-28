@@ -41,8 +41,8 @@ public class SecurityConfig {
                         .requestMatchers("/register", "/login", "/api/customers/register", "/api/restaurants/register", "/api/auth/login")
                         .permitAll()
                         .anyRequest().authenticated())
-                // .formLogin(Customizer.withDefaults())
-                // .httpBasic(Customizer.withDefaults())
+                .formLogin(Customizer.withDefaults())
+                .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
