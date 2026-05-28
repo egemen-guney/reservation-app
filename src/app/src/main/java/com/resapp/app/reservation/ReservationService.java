@@ -49,7 +49,7 @@ public class ReservationService {
 
         Reservation newReservation = Reservation.builder()
                 .resId(UUID.randomUUID())
-                .restaurantId(area.getRestaurantId()) // Inherited perfectly from the seating area!
+                .restaurantId(area.getRestaurantId())
                 .customerId(customerId)
                 .areaId(area.getAreaId())
                 .resDate(request.date())

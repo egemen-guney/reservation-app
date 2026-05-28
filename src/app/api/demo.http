@@ -108,3 +108,60 @@ Content-Type: application/json
   "zipCode": "M1X 0X0",
   "country": "Mexico"
 }
+
+### Add a Burger to the Menu
+POST http://localhost:8080/api/menus/692268af-f68e-4d84-996a-eb1f2259cd45/items
+Content-Type: application/json
+
+{
+  "name": "Classic Cheeseburger",
+  "description": "Quarter pound beef patty with cheddar cheese, lettuce, and tomato.",
+  "category": "Handhelds",
+  "price": 12.99,
+  "isAvailable": true
+}
+
+### Add a Pizza to the Menu
+POST http://localhost:8080/api/menus/98d864ab-64ad-4f1f-8a18-f35efad190d2/items
+Content-Type: application/json
+
+{
+  "name": "Margaritha Pizza",
+  "description": "Our classic Italian-style pizza.",
+  "category": "Classics",
+  "price": 12.99,
+  "isAvailable": true
+}
+
+### Add a Taco to the Menu
+POST http://localhost:8080/api/menus/6da44970-6004-4f79-9089-9a1088e483aa/items
+Content-Type: application/json
+
+{
+  "name": "Beef Barbacoa",
+  "description": "Famous silky smooth beef barbacoa beef taco.",
+  "category": "Protein Tacos",
+  "price": 12.99,
+  "isAvailable": true
+}
+
+### Get the whole Menu
+GET http://localhost:8080/api/menus/692268af-f68e-4d84-996a-eb1f2259cd45/items
+
+### Get the whole Menu
+GET http://localhost:8080/api/menus/98d864ab-64ad-4f1f-8a18-f35efad190d2/items
+
+### Get the whole Menu
+GET http://localhost:8080/api/menus/6da44970-6004-4f79-9089-9a1088e483aa/items
+
+### Update a Menu Item
+PUT http://localhost:8080/api/menus/692268af-f68e-4d84-996a-eb1f2259cd45/items/fc628bc8-7f3c-4aa3-ad5a-821fd641d65e
+Content-Type: application/json
+
+{
+  "name": "Truffle Cheeseburger",
+  "description": "Upgraded quarter pound beef patty with truffle mayo, caramelized onions, and swiss cheese.",
+  "category": "Mains",
+  "price": 16.99,
+  "isAvailable": true
+}

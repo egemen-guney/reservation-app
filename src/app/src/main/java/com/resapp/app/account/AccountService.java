@@ -29,7 +29,7 @@ public class AccountService {
     private final AddressRepository addressRepository;
     private final PasswordEncoder passwordEncoder;
     private final MenuRepository menuRepository;
-    private JWTService jwtService;
+    private final JWTService jwtService;
 
     public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository,
                           AdminRepository adminRepository, RestaurantRepository restaurantRepository,
@@ -51,8 +51,6 @@ public class AccountService {
         if (accountRepository.findByPhone(request.phone()).isPresent()) throw new IllegalStateException("An account with this phone number already exists.");
 
         String passwordHash = passwordEncoder.encode(request.password());
-        // debug
-        // System.out.println(passwordHash);
 
         UUID newAccountId = UUID.randomUUID();
         Account newAccount = Account.builder()
@@ -81,8 +79,6 @@ public class AccountService {
         if (accountRepository.findByPhone(request.phone()).isPresent()) throw new IllegalStateException("An account with this phone already exists.");
 
         String passwordHash = passwordEncoder.encode(request.password());
-        // debug
-        // System.out.println(passwordHash);
 
         UUID newAccountId = UUID.randomUUID();
         Account newAccount = Account.builder()
@@ -166,13 +162,13 @@ public class AccountService {
         if (!passwordMatches) throw new IllegalArgumentException("Invalid password.");
 
         return jwtService.generateToken(request.emailOrPhone());
-        /*return new LoginResponse(
-                account.getAccountId(),
-                account.getRole(),
-                "Successfully logged in!");*/
     }
 
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
+    }
+
+    public List<Restaurant> getAllRestaurants() {
+        return restaurantRepository.findAll();
     }
 }

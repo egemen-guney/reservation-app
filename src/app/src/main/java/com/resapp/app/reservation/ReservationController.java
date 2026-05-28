@@ -1,15 +1,17 @@
 package com.resapp.app.reservation;
 
+import com.resapp.app.account.AccountPrincipal;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/reservations")
 public class ReservationController {
     private final ReservationService resService;
 
@@ -19,20 +21,20 @@ public class ReservationController {
 
     // --CUSTOMERS--
     @PreAuthorize("hasRole('CUSTOMER')")
-    @GetMapping("/customers/{customerId}/reservations")
+    @GetMapping("/customers/{customerId}")
     public List<Reservation> getCustomerReservations(@PathVariable UUID customerId) {
         return resService.getResByCustomer(customerId);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
-    @PostMapping("/customers/{customerId}/reservations")
+    @PostMapping("/customers/{customerId}")
     @ResponseStatus(HttpStatus.CREATED)
     public void makeReservation(@PathVariable UUID customerId, @Valid @RequestBody ReservationRequest request) {
         resService.makeReservation(customerId, request);
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
-    @PutMapping("/customers/{customerId}/reservations/{resId}")
+    @PutMapping("/customers/{customerId}/{resId}")
     @ResponseStatus(HttpStatus.OK)
     public void updateReservation(@PathVariable UUID customerId, @PathVariable UUID resId,
                                   @Valid @RequestBody ReservationRequest request) {
@@ -40,7 +42,7 @@ public class ReservationController {
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
-    @DeleteMapping("/customers/{customerId}/reservations/{resId}")
+    @DeleteMapping("/customers/{customerId}/{resId}")
     @ResponseStatus(HttpStatus.OK)
     public void cancelReservation(@PathVariable UUID customerId, @PathVariable UUID resId) {
         resService.cancelReservation(customerId, resId);
@@ -49,13 +51,13 @@ public class ReservationController {
 
     // --RESTAURANTS--
     @PreAuthorize("hasRole('RESTAURANT')")
-    @GetMapping("/restaurants/{restaurantId}/reservations")
+    @GetMapping("/restaurants/{restaurantId}")
     public List<Reservation> getRestaurantReservations(@PathVariable UUID restaurantId) {
         return resService.getResByRestaurant(restaurantId);
     }
 
     @PreAuthorize("hasRole('RESTAURANT')")
-    @PatchMapping("/restaurants/{restaurantId}/reservations/{resId}/status")
+    @PatchMapping("/restaurants/{restaurantId}/{resId}/status")
     @ResponseStatus(HttpStatus.OK)
     public void updateReservationStatus(
             @PathVariable UUID restaurantId,

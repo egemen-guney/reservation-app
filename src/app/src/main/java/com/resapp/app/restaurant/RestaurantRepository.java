@@ -23,9 +23,15 @@ public class RestaurantRepository {
                 .optional();
     }
 
-    public List<Restaurant> findByAccountId(UUID accountId) {
+    public Optional<Restaurant> findByAccountId(UUID accountId) {
         return jdbcClient.sql("SELECT * FROM restaurant WHERE account_id = :id")
                 .param("id", accountId)
+                .query(Restaurant.class)
+                .optional();
+    }
+
+    public List<Restaurant> findAll() {
+        return jdbcClient.sql("SELECT * FROM restaurant")
                 .query(Restaurant.class)
                 .list();
     }
