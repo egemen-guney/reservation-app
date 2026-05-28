@@ -42,10 +42,20 @@ CREATE TABLE IF NOT EXISTS restaurant (
     bus_phone VARCHAR(20) NOT NULL,
     menu_id UUID NOT NULL UNIQUE REFERENCES menu(menu_id) ON DELETE CASCADE,
     stars DECIMAL(2, 1) NOT NULL CHECK (stars >= 0 AND stars <= 5),
+    review_count INTEGER DEFAULT 0,
     opening_hours TIME NOT NULL,
     closing_hours TIME NOT NULL,
-    -- capacity INTEGER NOT NULL CHECK (capacity > 0),
     is_open BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS review (
+    review_id UUID PRIMARY KEY,
+    restaurant_id UUID NOT NULL REFERENCES restaurant(restaurant_id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES customer(customer_id) ON DELETE CASCADE,
+    stars INTEGER NOT NULL CHECK (stars >= 1 AND stars <= 5),
+    comment TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (restaurant_id, customer_id)
 );
 
 CREATE TABLE IF NOT EXISTS menu_item (
