@@ -3,7 +3,10 @@ package com.resapp.app.customer;
 import com.resapp.app.account.AccountService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -14,9 +17,10 @@ public class CustomerController {
         this.accountService = accountService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public String demo() { // debug function to test auth
-        return "passed";
+    public List<Customer> getCustomers() { // debug function to test auth
+        return accountService.getAllCustomers();
     }
 
     @PostMapping("/register")

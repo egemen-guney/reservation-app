@@ -38,7 +38,8 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for local testing
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/login", "/api/customers/register", "/api/restaurants/register", "/api/auth/login")
+                        .requestMatchers("/register", "/login", "/api/customers/register",
+                                "/api/restaurants/register", "/api/admins/register", "/api/auth/login")
                         .permitAll()
                         .anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())

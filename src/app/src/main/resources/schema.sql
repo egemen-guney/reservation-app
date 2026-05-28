@@ -7,6 +7,13 @@ CREATE TABLE IF NOT EXISTS account (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS admin (
+    admin_id UUID PRIMARY KEY,
+    account_id UUID NOT NULL REFERENCES account(account_id) ON DELETE CASCADE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS customer (
     customer_id UUID PRIMARY KEY,
     account_id UUID NOT NULL UNIQUE REFERENCES account(account_id) ON DELETE CASCADE,

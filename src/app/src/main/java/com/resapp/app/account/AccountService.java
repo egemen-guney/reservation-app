@@ -2,6 +2,9 @@ package com.resapp.app.account;
 
 import com.resapp.app.address.Address;
 import com.resapp.app.address.AddressRepository;
+import com.resapp.app.admin.Admin;
+import com.resapp.app.admin.AdminRegistrationRequest;
+import com.resapp.app.admin.AdminRepository;
 import com.resapp.app.customer.Customer;
 import com.resapp.app.customer.CustomerRepository;
 import com.resapp.app.customer.CustomerRegistrationRequest;
@@ -14,12 +17,14 @@ import com.resapp.app.restaurant.RestaurantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class AccountService {
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
+    private final AdminRepository adminRepository;
     private final RestaurantRepository restaurantRepository;
     private final AddressRepository addressRepository;
     private final PasswordEncoder passwordEncoder;
@@ -27,10 +32,12 @@ public class AccountService {
     private JWTService jwtService;
 
     public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository,
-                          RestaurantRepository restaurantRepository, AddressRepository addressRepository,
-                          PasswordEncoder passwordEncoder, MenuRepository menuRepository, JWTService service) {
+                          AdminRepository adminRepository, RestaurantRepository restaurantRepository,
+                          AddressRepository addressRepository, PasswordEncoder passwordEncoder,
+                          MenuRepository menuRepository, JWTService service) {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
+        this.adminRepository = adminRepository;
         this.restaurantRepository = restaurantRepository;
         this.addressRepository = addressRepository;
         this.passwordEncoder = passwordEncoder;
@@ -122,6 +129,34 @@ public class AccountService {
     }
 
     @Transactional
+    public void registerNewAdmin(AdminRegistrationRequest request) {
+        if (accountRepository.findByEmail(request.email()).isPresent()) throw new IllegalStateException("An account with this email already exists.");
+        if (accountRepository.findByPhone(request.phone()).isPresent()) throw new IllegalStateException("An account with this phone number already exists.");
+
+        String passwordHash = passwordEncoder.encode(request.password());
+
+        UUID newAccountId = UUID.randomUUID();
+        Account newAccount = Account.builder()
+                .accountId(newAccountId)
+                .email(request.email())
+                .phone(request.phone())
+                .passwordHash(passwordHash)
+                .role(AccountRole.ADMIN)
+                .build();
+
+        UUID newAdminId = UUID.randomUUID();
+        Admin newAdmin = Admin.builder()
+                .adminId(newAdminId)
+                .accountId(newAccountId)
+                .firstName(request.firstName())
+                .lastName(request.lastName())
+                .build();
+
+        accountRepository.create(newAccount);
+        adminRepository.create(newAdmin);
+    }
+
+    @Transactional
     public String login(LoginRequest request) {
         Account account = accountRepository.findByEmailOrPhone(request.emailOrPhone())
                 .orElseThrow(() -> new IllegalArgumentException("Could not find an account with these credentials."));
@@ -135,5 +170,9 @@ public class AccountService {
                 account.getAccountId(),
                 account.getRole(),
                 "Successfully logged in!");*/
+    }
+
+    public List<Customer> getAllCustomers() {
+        return customerRepository.findAll();
     }
 }

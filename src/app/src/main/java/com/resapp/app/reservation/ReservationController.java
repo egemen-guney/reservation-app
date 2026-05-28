@@ -2,6 +2,7 @@ package com.resapp.app.reservation;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,17 +18,20 @@ public class ReservationController {
     }
 
     // --CUSTOMERS--
+    @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/customers/{customerId}/reservations")
     public List<Reservation> getCustomerReservations(@PathVariable UUID customerId) {
         return resService.getResByCustomer(customerId);
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/customers/{customerId}/reservations")
     @ResponseStatus(HttpStatus.CREATED)
     public void makeReservation(@PathVariable UUID customerId, @Valid @RequestBody ReservationRequest request) {
         resService.makeReservation(customerId, request);
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/customers/{customerId}/reservations/{resId}")
     @ResponseStatus(HttpStatus.OK)
     public void updateReservation(@PathVariable UUID customerId, @PathVariable UUID resId,
@@ -35,6 +39,7 @@ public class ReservationController {
         resService.updateReservation(resId, customerId, request);
     }
 
+    @PreAuthorize("hasRole('CUSTOMER')")
     @DeleteMapping("/customers/{customerId}/reservations/{resId}")
     @ResponseStatus(HttpStatus.OK)
     public void cancelReservation(@PathVariable UUID customerId, @PathVariable UUID resId) {
@@ -43,11 +48,13 @@ public class ReservationController {
     // --CUSTOMERS--
 
     // --RESTAURANTS--
+    @PreAuthorize("hasRole('RESTAURANT')")
     @GetMapping("/restaurants/{restaurantId}/reservations")
     public List<Reservation> getRestaurantReservations(@PathVariable UUID restaurantId) {
         return resService.getResByRestaurant(restaurantId);
     }
 
+    @PreAuthorize("hasRole('RESTAURANT')")
     @PatchMapping("/restaurants/{restaurantId}/reservations/{resId}/status")
     @ResponseStatus(HttpStatus.OK)
     public void updateReservationStatus(

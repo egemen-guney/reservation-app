@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,6 +28,12 @@ public class CustomerRepository {
                 .param("id", accountId)
                 .query(Customer.class)
                 .optional();
+    }
+
+    public List<Customer> findAll() {
+        return jdbcClient.sql("SELECT * FROM customer")
+                .query(Customer.class)
+                .list();
     }
 
     public void create(Customer customer) {
