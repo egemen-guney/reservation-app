@@ -24,14 +24,18 @@ public class AccountService {
     private final AddressRepository addressRepository;
     private final PasswordEncoder passwordEncoder;
     private final MenuRepository menuRepository;
+    private JWTService jwtService;
 
-    public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository, RestaurantRepository restaurantRepository, AddressRepository addressRepository, PasswordEncoder passwordEncoder, MenuRepository menuRepository) {
+    public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository,
+                          RestaurantRepository restaurantRepository, AddressRepository addressRepository,
+                          PasswordEncoder passwordEncoder, MenuRepository menuRepository, JWTService service) {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
         this.restaurantRepository = restaurantRepository;
         this.addressRepository = addressRepository;
         this.passwordEncoder = passwordEncoder;
         this.menuRepository = menuRepository;
+        this.jwtService = service;
     }
 
     @Transactional
@@ -66,8 +70,8 @@ public class AccountService {
 
     @Transactional
     public void registerNewRestaurant(RestaurantRegistrationRequest request) {
-        // if (accountRepository.findByEmail(request.email()).isPresent()) throw new IllegalStateException("An account with this email already exists.");
-        // if (accountRepository.findByPhone(request.phone()).isPresent()) throw new IllegalStateException("An account with this phone already exists.");
+        if (accountRepository.findByEmail(request.email()).isPresent()) throw new IllegalStateException("An account with this email already exists.");
+        if (accountRepository.findByPhone(request.phone()).isPresent()) throw new IllegalStateException("An account with this phone already exists.");
 
         String passwordHash = passwordEncoder.encode(request.password());
         // debug
@@ -118,7 +122,7 @@ public class AccountService {
     }
 
     @Transactional
-    public LoginResponse login(LoginRequest request) {
+    public String login(LoginRequest request) {
         Account account = accountRepository.findByEmailOrPhone(request.emailOrPhone())
                 .orElseThrow(() -> new IllegalArgumentException("Could not find an account with these credentials."));
 
@@ -126,9 +130,10 @@ public class AccountService {
 
         if (!passwordMatches) throw new IllegalArgumentException("Invalid password.");
 
-        return new LoginResponse(
+        return jwtService.generateToken(request.emailOrPhone());
+        /*return new LoginResponse(
                 account.getAccountId(),
                 account.getRole(),
-                "Successfully logged in!");
+                "Successfully logged in!");*/
     }
 }
