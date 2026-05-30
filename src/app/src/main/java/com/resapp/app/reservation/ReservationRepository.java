@@ -32,11 +32,18 @@ public class ReservationRepository {
                 .list();
     }
 
-    public List<Reservation> findByCustomerId(UUID customerId) {
+    public List<Reservation> findAllByCustomerId(UUID customerId) {
         return jdbcClient.sql("SELECT * FROM reservation WHERE customer_id = :id")
                 .param("id", customerId)
                 .query(Reservation.class)
                 .list();
+    }
+
+    public Optional<Reservation> findByCustomerId(UUID customerId) {
+        return jdbcClient.sql("SELECT * FROM reservation WHERE customer_id = :id")
+                .param("id", customerId)
+                .query(Reservation.class)
+                .optional();
     }
 
     // used for UPDATE

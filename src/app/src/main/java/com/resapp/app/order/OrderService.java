@@ -1,5 +1,9 @@
 package com.resapp.app.order;
 
+import com.resapp.app.account.Account;
+import com.resapp.app.account.AccountRole;
+import com.resapp.app.customer.Customer;
+import com.resapp.app.customer.CustomerRepository;
 import com.resapp.app.menu.MenuItem;
 import com.resapp.app.menu.MenuItemRepository;
 import com.resapp.app.reservation.Reservation;
@@ -7,6 +11,7 @@ import com.resapp.app.reservation.ReservationRepository;
 import com.resapp.app.reservation.ReservationStatus;
 import com.resapp.app.restaurant.Restaurant;
 import com.resapp.app.restaurant.RestaurantRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,31 +27,93 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final RestaurantRepository restaurantRepository;
+    private final CustomerRepository customerRepository;
 
     public OrderService(ReservationRepository resRepository, MenuItemRepository itemRepository,
                         OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-                        RestaurantRepository restaurantRepository) {
+                        RestaurantRepository restaurantRepository, CustomerRepository customerRepository) {
         this.resRepository = resRepository;
         this.itemRepository = itemRepository;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.restaurantRepository = restaurantRepository;
+        this.customerRepository = customerRepository;
     }
 
-    public List<Order> getCustomerOrders(UUID customerId) {
+    public List<Order> getCustomerOrders(UUID customerId, Account account) {
+        if (account.getRole() == AccountRole.CUSTOMER) {
+            Customer myCustomer = customerRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Customer profile not found."));
+
+            if (!myCustomer.getCustomerId().equals(customerId)) {
+                throw new AccessDeniedException("You are only authorized to view past orders for your own profile.");
+            }
+        }
+
         return orderRepository.findAllByCustomerId(customerId);
     }
 
-    public Optional<OrderItem> findItem(UUID menuItemId, UUID orderId) {
+    public Optional<OrderItem> findItem(UUID customerId, UUID menuItemId, UUID orderId, Account account) {
+        Order myOrder = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalStateException("Order not found."));
+
+        if (account.getRole() == AccountRole.CUSTOMER) {
+            Customer myCustomer = customerRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Customer profile not found."));
+
+            if (!myCustomer.getCustomerId().equals(customerId) && !myCustomer.getCustomerId().equals(myOrder.getCustomerId())) {
+                throw new AccessDeniedException("You are only authorized to view order items for your own orders.");
+            }
+        } else if (account.getRole() == AccountRole.RESTAURANT) {
+            Restaurant myRestaurant = restaurantRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Restaurant profile not found."));
+
+            Reservation myRes = resRepository.findByResId(myOrder.getResId())
+                    .orElseThrow(() -> new IllegalStateException("Reservation not found."));
+
+            if (!myRestaurant.getRestaurantId().equals(myRes.getRestaurantId())) {
+                throw new AccessDeniedException("You are only authorized to view order items for reservations made to your own restaurant.");
+            }
+        }
+
         return orderItemRepository.findByItemId(menuItemId, orderId);
     }
 
-    public List<OrderItem> findOrderItems(UUID orderId) {
+    public List<OrderItem> findOrderItems(UUID customerId, UUID orderId, Account account) {
+        Order myOrder = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalStateException("Order not found."));
+
+        if (account.getRole() == AccountRole.CUSTOMER) {
+            Customer myCustomer = customerRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Customer profile not found."));
+
+            if (!myCustomer.getCustomerId().equals(customerId) && !myCustomer.getCustomerId().equals(myOrder.getCustomerId())) {
+                throw new AccessDeniedException("You are only authorized to view order items for your own orders.");
+            }
+        } else if (account.getRole() == AccountRole.RESTAURANT) {
+            Restaurant myRestaurant = restaurantRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Restaurant profile not found."));
+
+            Reservation myRes = resRepository.findByResId(myOrder.getResId())
+                    .orElseThrow(() -> new IllegalStateException("Reservation not found."));
+
+            if (!myRestaurant.getRestaurantId().equals(myRes.getRestaurantId())) {
+                throw new AccessDeniedException("You are only authorized to view order items for reservations made to your own restaurant.");
+            }
+        }
+
         return orderItemRepository.findByOrderId(orderId);
     }
 
     @Transactional
-    public void placeOrder(UUID customerId, OrderRequest request) {
+    public void placeOrder(UUID customerId, OrderRequest request, UUID loggedinId) {
+        Customer myCustomer = customerRepository.findByAccountId(loggedinId)
+                .orElseThrow(() -> new IllegalStateException("Customer profile not found."));
+
+        if (!myCustomer.getCustomerId().equals(customerId)) {
+            throw new AccessDeniedException("You are only authorized to place orders for your own reservations.");
+        }
+
         Reservation res = resRepository.findByResId(request.resId())
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
 

@@ -20,40 +20,43 @@ public class ReservationController {
     }
 
     // --CUSTOMERS--
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     @GetMapping("/customers/{customerId}")
-    public List<Reservation> getCustomerReservations(@PathVariable UUID customerId) {
-        return resService.getResByCustomer(customerId);
+    public List<Reservation> getCustomerReservations(@PathVariable UUID customerId, @AuthenticationPrincipal AccountPrincipal principal) {
+        return resService.getResByCustomer(customerId, principal.getAccount());
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/customers/{customerId}")
     @ResponseStatus(HttpStatus.CREATED)
-    public void makeReservation(@PathVariable UUID customerId, @Valid @RequestBody ReservationRequest request) {
-        resService.makeReservation(customerId, request);
+    public void makeReservation(@PathVariable UUID customerId, @Valid @RequestBody ReservationRequest request,
+                                @AuthenticationPrincipal AccountPrincipal principal) {
+        resService.makeReservation(customerId, request, principal.getAccount().getAccountId());
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/customers/{customerId}/{resId}")
     @ResponseStatus(HttpStatus.OK)
     public void updateReservation(@PathVariable UUID customerId, @PathVariable UUID resId,
-                                  @Valid @RequestBody ReservationRequest request) {
-        resService.updateReservation(resId, customerId, request);
+                                  @Valid @RequestBody ReservationRequest request,
+                                  @AuthenticationPrincipal AccountPrincipal principal) {
+        resService.updateReservation(resId, customerId, request, principal.getAccount().getAccountId());
     }
 
     @PreAuthorize("hasRole('CUSTOMER')")
     @DeleteMapping("/customers/{customerId}/{resId}")
     @ResponseStatus(HttpStatus.OK)
-    public void cancelReservation(@PathVariable UUID customerId, @PathVariable UUID resId) {
-        resService.cancelReservation(customerId, resId);
+    public void cancelReservation(@PathVariable UUID customerId, @PathVariable UUID resId,
+                                  @AuthenticationPrincipal AccountPrincipal principal) {
+        resService.cancelReservation(customerId, resId, principal.getAccount().getAccountId());
     }
     // --CUSTOMERS--
 
     // --RESTAURANTS--
-    @PreAuthorize("hasRole('RESTAURANT')")
+    @PreAuthorize("hasAnyRole('ADMIN','RESTAURANT')")
     @GetMapping("/restaurants/{restaurantId}")
-    public List<Reservation> getRestaurantReservations(@PathVariable UUID restaurantId) {
-        return resService.getResByRestaurant(restaurantId);
+    public List<Reservation> getRestaurantReservations(@PathVariable UUID restaurantId, @AuthenticationPrincipal AccountPrincipal principal) {
+        return resService.getResByRestaurant(restaurantId, principal.getAccount());
     }
 
     @PreAuthorize("hasRole('RESTAURANT')")
@@ -62,8 +65,18 @@ public class ReservationController {
     public void updateReservationStatus(
             @PathVariable UUID restaurantId,
             @PathVariable UUID resId,
-            @RequestParam ReservationStatus status) {
-        resService.updateReservationStatus(restaurantId, resId, status);
+            @RequestParam ReservationStatus status,
+            @AuthenticationPrincipal AccountPrincipal principal) {
+        resService.updateReservationStatus(restaurantId, resId, status, principal.getAccount().getAccountId());
     }
     // --RESTAURANTS--
+
+    // --ADMINS--
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{resId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteReservation(@PathVariable UUID resId) {
+        resService.deleteReservation(resId);
+    }
+    // -- ADMINS--
 }

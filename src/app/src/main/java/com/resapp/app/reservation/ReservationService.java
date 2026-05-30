@@ -1,7 +1,12 @@
 package com.resapp.app.reservation;
 
+import com.resapp.app.account.Account;
+import com.resapp.app.account.AccountRole;
+import com.resapp.app.customer.Customer;
+import com.resapp.app.customer.CustomerRepository;
 import com.resapp.app.restaurant.Restaurant;
 import com.resapp.app.restaurant.RestaurantRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,23 +19,49 @@ public class ReservationService {
     private final ReservationRepository resRepository;
     private final SeatingAreaRepository seatingRepository;
     private final RestaurantRepository restaurantRepository;
+    private final CustomerRepository customerRepository;
 
-    public ReservationService(ReservationRepository resRepository, SeatingAreaRepository seatingRepository, RestaurantRepository restaurantRepository) {
+    public ReservationService(ReservationRepository resRepository, SeatingAreaRepository seatingRepository, RestaurantRepository restaurantRepository, CustomerRepository customerRepository) {
         this.resRepository = resRepository;
         this.seatingRepository = seatingRepository;
         this.restaurantRepository = restaurantRepository;
+        this.customerRepository = customerRepository;
     }
 
-    public List<Reservation> getResByRestaurant(UUID restaurantId) {
+    public List<Reservation> getResByRestaurant(UUID restaurantId, Account account) {
+        if (account.getRole() == AccountRole.RESTAURANT) {
+            Restaurant myRestaurant = restaurantRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Restaurant not found."));
+
+            if (!myRestaurant.getRestaurantId().equals(restaurantId)) {
+                throw new AccessDeniedException("You are only authorized to view reservations for your own restaurant.");
+            }
+        }
+
         return resRepository.findByRestaurantId(restaurantId);
     }
 
-    public List<Reservation> getResByCustomer(UUID customerId) {
-        return resRepository.findByCustomerId(customerId);
+    public List<Reservation> getResByCustomer(UUID customerId, Account account) {
+        if (account.getRole() == AccountRole.CUSTOMER) {
+            Customer myCustomer = customerRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Customer profile not found."));
+
+            if (!myCustomer.getCustomerId().equals(customerId)) {
+                throw new AccessDeniedException("You are only authorized to view reservations of your own.");
+            }
+        }
+        return resRepository.findAllByCustomerId(customerId);
     }
 
     @Transactional
-    public void makeReservation(UUID customerId, ReservationRequest request) {
+    public void makeReservation(UUID customerId, ReservationRequest request, UUID loggedinId) {
+        Customer myCustomer = customerRepository.findByAccountId(loggedinId)
+                .orElseThrow(() -> new IllegalStateException("Customer profile not found."));
+
+        if (!myCustomer.getCustomerId().equals(customerId)) {
+            throw new AccessDeniedException("You are only authorized to make reservations for your own.");
+        }
+
         SeatingArea area = seatingRepository.findById(request.areaId())
                 .orElseThrow(() -> new IllegalArgumentException("Seating area not found."));
 
@@ -64,7 +95,14 @@ public class ReservationService {
     }
 
     @Transactional
-    public void cancelReservation(UUID customerId, UUID resId) {
+    public void cancelReservation(UUID customerId, UUID resId, UUID loggedinId) {
+        Customer myCustomer = customerRepository.findByAccountId(loggedinId)
+                .orElseThrow(() -> new IllegalStateException("Customer profile not found."));
+
+        if (!myCustomer.getCustomerId().equals(customerId)) {
+            throw new AccessDeniedException("You are only authorized to update reservations of your own.");
+        }
+
         Reservation existingRes = resRepository.findByResId(resId)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
 
@@ -82,7 +120,14 @@ public class ReservationService {
     }
 
     @Transactional
-    public void updateReservation(UUID resId, UUID customerId, ReservationRequest request) {
+    public void updateReservation(UUID resId, UUID customerId, ReservationRequest request, UUID loggedinId) {
+        Customer myCustomer = customerRepository.findByAccountId(loggedinId)
+                .orElseThrow(() -> new IllegalStateException("Customer profile not found."));
+
+        if (!myCustomer.getCustomerId().equals(customerId)) {
+            throw new AccessDeniedException("You are only authorized to update reservations of your own.");
+        }
+
         Reservation existingRes = resRepository.findByResId(resId)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
 
@@ -121,7 +166,14 @@ public class ReservationService {
     }
 
     @Transactional
-    public void updateReservationStatus(UUID restaurantId, UUID resId, ReservationStatus status) {
+    public void updateReservationStatus(UUID restaurantId, UUID resId, ReservationStatus status, UUID loggedinId) {
+        Restaurant myRestaurant = restaurantRepository.findByAccountId(loggedinId)
+                .orElseThrow(() -> new IllegalStateException("Restaurant profile not found."));
+
+        if (!myRestaurant.getRestaurantId().equals(restaurantId)) {
+            throw new AccessDeniedException("You are only authorized to update reservations for your own restaurant.");
+        }
+
         Reservation existingRes = resRepository.findByResId(resId)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found."));
 

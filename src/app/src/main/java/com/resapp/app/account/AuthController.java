@@ -20,11 +20,11 @@ public class AuthController {
     public String login(@Valid @RequestBody LoginRequest request) {
         return accountService.login(request);
     }
-    /*
+
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.OK)
     public void logout(HttpServletRequest request) throws ServletException {
         // This explicitly clears any background session Spring Security might be holding
         request.logout();
-    }*/
+    }
 }

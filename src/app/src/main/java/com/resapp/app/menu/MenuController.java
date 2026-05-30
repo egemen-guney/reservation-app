@@ -1,8 +1,10 @@
 package com.resapp.app.menu;
 
+import com.resapp.app.account.AccountPrincipal;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,15 +24,16 @@ public class MenuController {
      */
     @GetMapping("/{menuId}/items")
     @ResponseStatus(HttpStatus.OK)
-    public List<MenuItem> getMenuItems(@PathVariable UUID menuId) {
-        return menuService.getMenuItems(menuId);
+    public List<MenuItem> getMenuItems(@PathVariable UUID menuId, @AuthenticationPrincipal AccountPrincipal principal) {
+        return menuService.getMenuItems(menuId, principal.getAccount());
     }
 
     @PreAuthorize("hasRole('RESTAURANT')")
     @PostMapping("/{menuId}/items")
     @ResponseStatus(HttpStatus.CREATED)
-    public void addMenuItem(@PathVariable UUID menuId, @Valid @RequestBody MenuItemRequest request) {
-        menuService.addMenuItem(menuId, request);
+    public void addMenuItem(@PathVariable UUID menuId, @Valid @RequestBody MenuItemRequest request,
+                            @AuthenticationPrincipal AccountPrincipal principal) {
+        menuService.addMenuItem(menuId, request, principal.getAccount().getAccountId());
     }
 
     @PreAuthorize("hasRole('RESTAURANT')")
@@ -39,14 +42,16 @@ public class MenuController {
     public void updateMenuItem(
             @PathVariable UUID menuId,
             @PathVariable UUID menuItemId,
+            @AuthenticationPrincipal AccountPrincipal principal,
             @Valid @RequestBody MenuItemRequest request) {
-        menuService.updateMenuItem(menuId, menuItemId, request);
+        menuService.updateMenuItem(menuId, menuItemId, principal.getAccount().getAccountId(), request);
     }
 
     @PreAuthorize("hasRole('RESTAURANT')")
     @DeleteMapping("/{menuId}/items/{menuItemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteMenuItem(@PathVariable UUID menuId, @PathVariable UUID menuItemId) {
-        menuService.deleteMenuItem(menuId, menuItemId);
+    public void deleteMenuItem(@PathVariable UUID menuId, @PathVariable UUID menuItemId,
+                               @AuthenticationPrincipal AccountPrincipal principal) {
+        menuService.deleteMenuItem(menuId, menuItemId, principal.getAccount().getAccountId());
     }
 }

@@ -165,3 +165,6 @@ Content-Type: application/json
   "price": 16.99,
   "isAvailable": true
 }
+
+### Search for a Restaurant
+GET http://localhost:8080/api/restaurants/1e6390f3-3eb8-4c6b-a743-203b58edd054
