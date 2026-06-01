@@ -61,6 +61,12 @@ public class OrderController {
         orderService.placeOrder(customerId, request, principal.getAccount().getAccountId());
     }
 
+    @GetMapping("/reservations/{resId}")
+    public Order getOrderByResId(@PathVariable UUID customerId, @PathVariable UUID resId,
+                                 @AuthenticationPrincipal AccountPrincipal principal) {
+        return orderService.findOrderByResId(customerId, resId, principal.getAccount());
+    }
+
     // look into this
     @PatchMapping("/{orderId}/refund")
     @ResponseStatus(HttpStatus.OK)

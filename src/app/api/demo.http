@@ -46,6 +46,18 @@ Content-Type: application/json
   "lastName": "B"
 }
 
+### Register a new CUSTOMER
+POST http://localhost:8080/api/customers/register
+Content-Type: application/json
+
+{
+  "email": "c@email.com",
+  "phone": "444-555-666",
+  "password": "c@123456",
+  "firstName": "c",
+  "lastName": "C"
+}
+
 ### Register a new RESTAURANT
 POST http://localhost:8080/api/restaurants/register
 Content-Type: application/json
@@ -107,6 +119,27 @@ Content-Type: application/json
   "state": "MX",
   "zipCode": "M1X 0X0",
   "country": "Mexico"
+}
+
+### Register a new RESTAURANT
+POST http://localhost:8080/api/restaurants/register
+Content-Type: application/json
+
+{
+  "email": "owner@doublezero.com",
+  "phone": "666-555-444",
+  "password": "pastapassword",
+  "name": "Double Zero",
+  "busPhone": "666-0001",
+  "stars": 4.5,
+  "openingHours": "09:00:00",
+  "closingHours": "22:00:00",
+  "isOpen": true,
+  "street": "Mutlukent Mh.",
+  "city": "Ankara",
+  "state": "-",
+  "zipCode": "06830",
+  "country": "Turkey"
 }
 
 ### Add a Burger to the Menu

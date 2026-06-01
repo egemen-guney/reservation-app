@@ -15,9 +15,10 @@ public class AuthController {
         this.accountService = accountService;
     }
 
+    // public String login(@Valid @RequestBody LoginRequest request) {
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public String login(@Valid @RequestBody LoginRequest request) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return accountService.login(request);
     }
 

@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS account (
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('CUSTOMER', 'RESTAURANT', 'ADMIN')), -- CUSTOMER, RESTAURANT_OWNER, ADMIN
+    role VARCHAR(20) NOT NULL CHECK (role IN ('CUSTOMER', 'RESTAURANT', 'ADMIN')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS restaurant (
     address_id UUID NOT NULL UNIQUE REFERENCES address(address_id) ON DELETE CASCADE,
     bus_phone VARCHAR(20) NOT NULL,
     menu_id UUID NOT NULL UNIQUE REFERENCES menu(menu_id) ON DELETE CASCADE,
-    stars DECIMAL(2, 1) NOT NULL CHECK (stars >= 0 AND stars <= 5),
+    stars DECIMAL(2, 1) CHECK (stars >= 0 AND stars <= 5) DEFAULT 3.0,
     review_count INTEGER DEFAULT 0,
     opening_hours TIME NOT NULL,
     closing_hours TIME NOT NULL,

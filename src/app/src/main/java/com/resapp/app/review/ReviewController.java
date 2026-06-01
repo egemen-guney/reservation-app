@@ -32,7 +32,7 @@ public class ReviewController {
      * RESTAURANTS CANNOT VIEW OTHER RESTAURANTS' REVIEWS
      */
     @GetMapping("/restaurants/{restaurantId}")
-    public List<Review> getRestaurantReviwes(@PathVariable UUID restaurantId, @AuthenticationPrincipal AccountPrincipal principal) {
+    public List<Review> getRestaurantReviews(@PathVariable UUID restaurantId, @AuthenticationPrincipal AccountPrincipal principal) {
         return reviewService.getReviewsByRestaurant(restaurantId, principal.getAccount());
     }
 

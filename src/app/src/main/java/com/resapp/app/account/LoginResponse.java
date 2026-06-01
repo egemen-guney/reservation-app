@@ -4,8 +4,11 @@ import java.util.UUID;
 
 // Serves as a session token
 public record LoginResponse(
-        UUID accountId,
-        AccountRole role,
-        String message
+        String token,
+        String role,
+        UUID profileId
+//        UUID accountId,
+//        AccountRole role,
+//        String message
 ) {
 }

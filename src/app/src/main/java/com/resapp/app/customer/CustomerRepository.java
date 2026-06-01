@@ -59,10 +59,20 @@ public class CustomerRepository {
     }
 
     public void delete(UUID customerId) {
+        UUID accountId = findByCustomerId(customerId)
+                .orElseThrow(() -> new IllegalStateException("Customer profile not found."))
+                .getAccountId();
+
         var updated = jdbcClient.sql("DELETE FROM customer WHERE customer_id = :id")
                 .param("id", customerId)
                 .update();
 
         Assert.state(updated == 1, "Failed to delete customer profile with ID: " + customerId);
+
+        updated = jdbcClient.sql("DELETE FROM account WHERE account_id = :id")
+                .param("id", accountId)
+                .update();
+
+        Assert.state(updated == 1, "Failed to delete account with ID: " + customerId);
     }
 }

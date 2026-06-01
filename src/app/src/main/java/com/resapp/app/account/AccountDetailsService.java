@@ -18,6 +18,6 @@ public class AccountDetailsService implements UserDetailsService {
         Account account = accountRepository.findByEmailOrPhone(emailOrPhone)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with these credentials: " + emailOrPhone));
 
-        return new AccountPrincipal(account);
+        return new AccountPrincipal(account, emailOrPhone);
     }
 }

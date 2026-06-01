@@ -12,6 +12,7 @@ import com.resapp.app.menu.Menu;
 import com.resapp.app.menu.MenuRepository;
 import com.resapp.app.restaurant.Restaurant;
 import com.resapp.app.restaurant.RestaurantRegistrationRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.resapp.app.restaurant.RestaurantRepository;
 import org.springframework.stereotype.Service;
@@ -100,7 +101,6 @@ public class AccountService {
                 .addressId(newAddressId)
                 .busPhone(request.busPhone())
                 .menuId(newMenuId)
-                .stars(request.stars())
                 .openingHours(request.openingHours())
                 .closingHours(request.closingHours())
                 .isOpen(request.isOpen())
@@ -125,36 +125,37 @@ public class AccountService {
         restaurantRepository.create(newRestaurant);
     }
 
+//    @Transactional
+//    public void registerNewAdmin(AdminRegistrationRequest request) {
+//        if (accountRepository.findByEmail(request.email()).isPresent()) throw new IllegalStateException("An account with this email already exists.");
+//        if (accountRepository.findByPhone(request.phone()).isPresent()) throw new IllegalStateException("An account with this phone number already exists.");
+//
+//        String passwordHash = passwordEncoder.encode(request.password());
+//
+//        UUID newAccountId = UUID.randomUUID();
+//        Account newAccount = Account.builder()
+//                .accountId(newAccountId)
+//                .email(request.email())
+//                .phone(request.phone())
+//                .passwordHash(passwordHash)
+//                .role(AccountRole.ADMIN)
+//                .build();
+//
+//        UUID newAdminId = UUID.randomUUID();
+//        Admin newAdmin = Admin.builder()
+//                .adminId(newAdminId)
+//                .accountId(newAccountId)
+//                .firstName(request.firstName())
+//                .lastName(request.lastName())
+//                .build();
+//
+//        accountRepository.create(newAccount);
+//        adminRepository.create(newAdmin);
+//    }
+
+    // public String login(LoginRequest request) {
     @Transactional
-    public void registerNewAdmin(AdminRegistrationRequest request) {
-        if (accountRepository.findByEmail(request.email()).isPresent()) throw new IllegalStateException("An account with this email already exists.");
-        if (accountRepository.findByPhone(request.phone()).isPresent()) throw new IllegalStateException("An account with this phone number already exists.");
-
-        String passwordHash = passwordEncoder.encode(request.password());
-
-        UUID newAccountId = UUID.randomUUID();
-        Account newAccount = Account.builder()
-                .accountId(newAccountId)
-                .email(request.email())
-                .phone(request.phone())
-                .passwordHash(passwordHash)
-                .role(AccountRole.ADMIN)
-                .build();
-
-        UUID newAdminId = UUID.randomUUID();
-        Admin newAdmin = Admin.builder()
-                .adminId(newAdminId)
-                .accountId(newAccountId)
-                .firstName(request.firstName())
-                .lastName(request.lastName())
-                .build();
-
-        accountRepository.create(newAccount);
-        adminRepository.create(newAdmin);
-    }
-
-    @Transactional
-    public String login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
         Account account = accountRepository.findByEmailOrPhone(request.emailOrPhone())
                 .orElseThrow(() -> new IllegalArgumentException("Could not find an account with these credentials."));
 
@@ -162,7 +163,20 @@ public class AccountService {
 
         if (!passwordMatches) throw new IllegalArgumentException("Invalid password.");
 
-        return jwtService.generateToken(request.emailOrPhone());
+        // return jwtService.generateToken(request.emailOrPhone());
+        String token = jwtService.generateToken(request.emailOrPhone());
+
+        // Find the specific profile ID based on their role!
+        UUID profileId = null;
+        if (account.getRole() == AccountRole.CUSTOMER) {
+            profileId = customerRepository.findByAccountId(account.getAccountId()).get().getCustomerId();
+        } else if (account.getRole() == AccountRole.RESTAURANT) {
+            profileId = restaurantRepository.findByAccountId(account.getAccountId()).get().getRestaurantId();
+        } else if (account.getRole() == AccountRole.ADMIN) {
+            profileId = adminRepository.findByAccountId(account.getAccountId()).get().getAdminId();
+        }
+
+        return new LoginResponse(token, account.getRole().name(), profileId);
     }
 
     public List<Customer> getAllCustomers() {
@@ -173,7 +187,45 @@ public class AccountService {
         return restaurantRepository.findAll();
     }
 
-    public Optional<Restaurant> getRestaurantById(UUID restaurantId) {
+    public Optional<Restaurant> getRestaurantById(UUID restaurantId, Account account) {
+        if (account.getRole() == AccountRole.RESTAURANT) {
+            Restaurant myRestaurant = restaurantRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Restaurant not found."));
+
+            if (!myRestaurant.getRestaurantId().equals(restaurantId)) {
+                throw new AccessDeniedException("You are only authorized to view your own restaurant.");
+            }
+        }
         return restaurantRepository.findByRestaurantId(restaurantId);
+    }
+
+    public Optional<Address> getRestaurantAddress(UUID restaurantId, Account account) {
+        if (account.getRole() == AccountRole.RESTAURANT) {
+            Restaurant myRestaurant = restaurantRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Restaurant not found."));
+
+            if (!myRestaurant.getRestaurantId().equals(restaurantId)) {
+                throw new AccessDeniedException("You are only authorized to view your own restaurant's address.");
+            }
+        }
+        return restaurantRepository.findAddressByRestaurantId(restaurantId);
+    }
+
+    @Transactional
+    public void deleteRestaurant(UUID restaurantId) {
+        // we are already checking this in the delete method of repositories.
+        Restaurant restaurant = restaurantRepository.findByRestaurantId(restaurantId)
+                .orElseThrow(() -> new IllegalStateException("Restaurant not found."));
+
+        restaurantRepository.delete(restaurantId);
+    }
+
+    @Transactional
+    public void deleteCustomer(UUID customerId) {
+        // we are already checking this in the delete method of repositories.
+        Customer customer = customerRepository.findByCustomerId(customerId)
+                .orElseThrow(() -> new IllegalStateException("Customer not found."));
+
+        customerRepository.delete(customerId);
     }
 }

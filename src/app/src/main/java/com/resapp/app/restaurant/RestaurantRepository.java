@@ -1,5 +1,6 @@
 package com.resapp.app.restaurant;
 
+import com.resapp.app.address.Address;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
@@ -37,15 +38,14 @@ public class RestaurantRepository {
     }
 
     public void create(Restaurant restaurant) {
-        var updated = jdbcClient.sql("INSERT INTO restaurant (restaurant_id, account_id, name, address_id, bus_phone, menu_id, stars, opening_hours, closing_hours, is_open) " +
-                "VALUES (:restaurantId, :accountId, :name, :addressId, :busPhone, :menuId, :stars, :oHours, :cHours, :isOpen)")
+        var updated = jdbcClient.sql("INSERT INTO restaurant (restaurant_id, account_id, name, address_id, bus_phone, menu_id, opening_hours, closing_hours, is_open) " +
+                "VALUES (:restaurantId, :accountId, :name, :addressId, :busPhone, :menuId, :oHours, :cHours, :isOpen)")
                 .param("restaurantId", restaurant.getRestaurantId())
                 .param("accountId", restaurant.getAccountId())
                 .param("name", restaurant.getName())
                 .param("addressId", restaurant.getAddressId())
                 .param("busPhone", restaurant.getBusPhone())
                 .param("menuId", restaurant.getMenuId())
-                .param("stars", restaurant.getStars())
                 .param("oHours", restaurant.getOpeningHours())
                 .param("cHours", restaurant.getClosingHours())
                 .param("isOpen", restaurant.isOpen())
@@ -72,10 +72,42 @@ public class RestaurantRepository {
     }
 
     public void delete(UUID restaurantId) {
+        Restaurant restaurant = findByRestaurantId(restaurantId)
+                .orElseThrow(() -> new IllegalStateException("Restaurant profile not found."));
+
+        UUID addressId = restaurant.getAddressId();
+        UUID menuId = restaurant.getMenuId();
+        UUID accountId = restaurant.getAccountId();
+
         var updated = jdbcClient.sql("DELETE FROM restaurant WHERE restaurant_id = :id")
                 .param("id", restaurantId)
                 .update();
 
         Assert.state(updated == 1, "Failed to delete restaurant profile with ID: " + restaurantId);
+
+        updated = jdbcClient.sql("DELETE FROM address WHERE address_id = :id")
+                .param("id", addressId)
+                .update();
+
+        Assert.state(updated == 1, "Failed to delete address with ID: " + addressId);
+
+        updated = jdbcClient.sql("DELETE FROM menu WHERE menu_id = :id")
+                .param("id", menuId)
+                .update();
+
+        Assert.state(updated == 1, "Failed to delete menu with ID: " + menuId);
+
+        updated = jdbcClient.sql("DELETE FROM account WHERE account_id = :id")
+                .param("id", accountId)
+                .update();
+
+        Assert.state(updated == 1, "Failed to delete account with ID: " + accountId);
+    }
+
+    public Optional<Address> findAddressByRestaurantId(UUID restaurantId) {
+        return jdbcClient.sql("SELECT * FROM address JOIN restaurant ON address.address_id = restaurant.address_id WHERE restaurant.restaurant_id = :id")
+                .param("id", restaurantId)
+                .query(Address.class)
+                .optional();
     }
 }

@@ -1,9 +1,12 @@
 package com.resapp.app.restaurant;
 
+import com.resapp.app.account.AccountPrincipal;
 import com.resapp.app.account.AccountService;
+import com.resapp.app.address.Address;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,10 +34,15 @@ public class RestaurantController {
     /**
      * ONLY ADMINS AND CUSTOMERS SHOULD BE ABLE TO ACCESS
      */
-    @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
+    // @PreAuthorize("hasAnyRole('ADMIN','CUSTOMER')")
     @GetMapping("/{restaurantId}")
-    public Optional<Restaurant> findRestaurant(@PathVariable UUID restaurantId) {
-        return accountService.getRestaurantById(restaurantId);
+    public Optional<Restaurant> findRestaurant(@PathVariable UUID restaurantId, @AuthenticationPrincipal AccountPrincipal principal) {
+        return accountService.getRestaurantById(restaurantId, principal.getAccount());
+    }
+
+    @GetMapping("/{restaurantId}/address")
+    public Optional<Address> findRestaurantAddress(@PathVariable UUID restaurantId, @AuthenticationPrincipal AccountPrincipal principal) {
+        return accountService.getRestaurantAddress(restaurantId, principal.getAccount());
     }
 
     @PostMapping("/register")

@@ -73,6 +73,16 @@ public class JWTService {
 
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
+//        alternative way
+//        AccountPrincipal principal = (AccountPrincipal) userDetails;
+//
+//        String userEmail = principal.getAccount().getEmail();
+//        String userPhone = principal.getAccount().getPhone();
+//
+//        // The token is valid if the subject matches EITHER the email OR the phone!
+//        boolean isSubjectValid = tokenSubject.equals(userEmail) || tokenSubject.equals(userPhone);
+//
+//        return isSubjectValid && !isTokenExpired(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 

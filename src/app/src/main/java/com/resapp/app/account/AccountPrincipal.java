@@ -7,13 +7,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public class AccountPrincipal implements UserDetails {
     private final Account account;
+    private final String loginIdentifier;
 
-    public AccountPrincipal(Account account) {
+    public AccountPrincipal(Account account, String loginIdentifier) {
         this.account = account;
+        this.loginIdentifier = loginIdentifier;
     }
 
     @Override
@@ -29,7 +30,9 @@ public class AccountPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return account.getEmail();
+        return loginIdentifier;
+//        previous way
+//        return account.getEmail();
     }
 
     @Override

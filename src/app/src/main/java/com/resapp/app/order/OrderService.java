@@ -192,4 +192,24 @@ public class OrderService {
         existingOrder.setStatus(OrderStatus.REFUNDED);
         orderRepository.update(existingOrder);
     }
+
+    public Order findOrderByResId(UUID customerId, UUID resId, Account account) {
+        if (account.getRole() == AccountRole.RESTAURANT) {
+            Restaurant myRestaurant = restaurantRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Restaurant not found."));
+
+            UUID restaurantId = resRepository.findByResId(resId).get().getRestaurantId();
+            if (!myRestaurant.getRestaurantId().equals(restaurantId)) {
+                throw new AccessDeniedException("You are only authorized to view reservations for your restaurant.");
+            }
+        } else if (account.getRole() == AccountRole.CUSTOMER) {
+            Customer myCustomer = customerRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Customer not found."));
+
+            if (!myCustomer.getCustomerId().equals(customerId)) {
+                throw new AccessDeniedException("You are only authorized to view orders of your own.");
+            }
+        }
+        return orderRepository.findByResId(resId).orElse(null);
+    }
 }
