@@ -3,6 +3,7 @@ package com.resapp.app.review;
 import com.resapp.app.account.AccountPrincipal;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,15 @@ public class ReviewController {
         return reviewService.getReviewsByRestaurant(restaurantId, principal.getAccount());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESTAURANT')") // Admins and restaurant owners can view specific reviews
+    @GetMapping("/customers/{customerId}/restaurants/{restaurantId}")
+    public ResponseEntity<Review> checkExistingReview(@PathVariable UUID customerId, @PathVariable UUID restaurantId,
+                                                      @AuthenticationPrincipal AccountPrincipal principal) {
+        return reviewService.getCustomerReviewForRestaurant(customerId, restaurantId, principal.getAccount())
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
     /**
      * CUSTOMERS CANNOT REVIEW ON BEHALF OF OTHER CUSTOMERS
      */
@@ -47,10 +57,10 @@ public class ReviewController {
         reviewService.review(customerId, request, principal.getAccount().getAccountId());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     @DeleteMapping("/{reviewId}")
     @ResponseStatus(HttpStatus.OK)
-    public void removeReview(@PathVariable UUID reviewId) {
-        reviewService.removeReview(reviewId);
+    public void removeReview(@PathVariable UUID reviewId, @AuthenticationPrincipal AccountPrincipal principal) {
+        reviewService.removeReview(reviewId, principal.getAccount());
     }
 }

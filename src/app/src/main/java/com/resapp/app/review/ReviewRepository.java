@@ -57,4 +57,12 @@ public class ReviewRepository {
 
         Assert.state(updated == 1, "Failed to delete review with ID: " + reviewId);
     }
+
+    public Optional<Review> findByCustomerIdAndRestaurantId(UUID customerId, UUID restaurantId) {
+        return jdbcClient.sql("SELECT * FROM review WHERE customer_id = :customerId AND restaurant_id = :restaurantId")
+                .param("customerId", customerId)
+                .param("restaurantId", restaurantId)
+                .query(Review.class)
+                .optional();
+    }
 }

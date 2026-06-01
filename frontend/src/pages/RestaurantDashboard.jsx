@@ -53,7 +53,6 @@ export default function RestaurantDashboard() {
        });
 
     fetchSeatingAreas();
-
   }, [user.profileId]);
 
   const updateStatus = async (resId, newStatus) => {
@@ -113,7 +112,7 @@ export default function RestaurantDashboard() {
       setEditingAreaId(null);
       fetchSeatingAreas();
     } catch (err) {
-      alert("Failed to update seating capacity. Verify your backend has a PUT endpoint configured.");
+      alert("Failed to update seating capacity.");
     }
   };
 
@@ -202,7 +201,10 @@ export default function RestaurantDashboard() {
                       )}
                       {(res.status === 'PENDING' || res.status === 'CONFIRMED') && (
                           <div className="flex gap-2 mt-2 pt-3 border-t border-gray-100">
-                            <button onClick={() => updateStatus(res.resId, 'CONFIRMED')} className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl text-sm font-bold flex-1 transition active:scale-95">Confirm</button>
+                            {/* THE FIX: Only render confirm if status is PENDING */}
+                            {res.status === 'PENDING' && (
+                                <button onClick={() => updateStatus(res.resId, 'CONFIRMED')} className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl text-sm font-bold flex-1 transition active:scale-95">Confirm</button>
+                            )}
                             <button onClick={() => updateStatus(res.resId, 'CANCELLED')} className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-xl text-sm font-bold flex-1 transition active:scale-95">Cancel</button>
                             <button onClick={() => updateStatus(res.resId, 'COMPLETED')} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-xl text-sm font-bold flex-1 transition active:scale-95">Complete</button>
                           </div>
@@ -215,12 +217,12 @@ export default function RestaurantDashboard() {
           </div>
         )}
 
+        {/* ... Seating Tab (Unchanged) ... */}
         {activeTab === 'SEATING' && (
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Add New Seating Area</h3>
               <form onSubmit={handleAddSeating} className="flex flex-col sm:flex-row gap-4">
-                
                 <select 
                   required 
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 font-bold text-gray-700"
@@ -231,7 +233,6 @@ export default function RestaurantDashboard() {
                   <option value="OUTDOOR">OUTDOOR</option>
                   <option value="BAR">BAR</option>
                 </select>
-
                 <input 
                   type="number" required min="1" placeholder="Capacity (e.g., 40)" 
                   className="w-full sm:w-48 px-4 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
@@ -253,7 +254,6 @@ export default function RestaurantDashboard() {
                 ) : (
                   seatingAreas.map(area => (
                     <li key={area.areaId} className="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
-                      
                       {editingAreaId === area.areaId ? (
                         <div className="flex items-center gap-4 w-full">
                           <span className="font-bold text-gray-900 w-24">{area.areaName}</span>

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -82,7 +83,30 @@ public class ReviewService {
     }
 
     @Transactional
-    public void removeReview(UUID reviewId) {
+    public void removeReview(UUID reviewId, Account account) {
+        if (account.getRole() == AccountRole.CUSTOMER) {
+            Customer myCustomer = customerRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Customer profile not found."));
+
+            Review reviewToDelete = reviewRepository.findById(reviewId)
+                    .orElseThrow(() -> new IllegalStateException("Review not found."));
+
+            if (!reviewToDelete.getCustomerId().equals(myCustomer.getCustomerId())) {
+                throw new AccessDeniedException("You are only authorized to delete reviews of your own.");
+            }
+        }
         reviewRepository.delete(reviewId);
+    }
+
+    public Optional<Review> getCustomerReviewForRestaurant(UUID customerId, UUID restaurantId, Account account) {
+        if (account.getRole() == AccountRole.CUSTOMER) {
+            Customer myCustomer = customerRepository.findByAccountId(account.getAccountId())
+                    .orElseThrow(() -> new IllegalStateException("Customer profile not found."));
+
+            if (!myCustomer.getCustomerId().equals(customerId)) {
+                throw new AccessDeniedException("You are only authorized to view reviews of your own.");
+            }
+        }
+        return reviewRepository.findByCustomerIdAndRestaurantId(customerId, restaurantId);
     }
 }
